@@ -1,3 +1,4 @@
+FEATURES IN MIND -
 ✅ User Authentication – Sign up, login, and logout (Google/Firebase auth or custom)
 ✅ Dashboard – Overview of balances, groups, and recent activities
 ✅ Adding Expenses – Split expenses with friends, categorize expenses
