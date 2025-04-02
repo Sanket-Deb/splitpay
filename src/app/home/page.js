@@ -6,9 +6,15 @@ const HomePage = () => {
   const { data: session } = useSession();
 
   return (
-    <div className="flex flex-col items-center justify-center mih-h-screen">
-      <h1>Welcome to SplitPay, {session?.user?.name}!</h1>
-      <button onClick={() => signOut()}>Sign Out</button>
+    <div>
+      {session ? (
+        <>
+          <h2>Welcome, {session.user.email}</h2>
+          <button onClick={() => signOut()}>Sign Out</button>
+        </>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };
