@@ -1,11 +1,16 @@
 import NextAuth from "next-auth";
-import { SupabaseAdapter } from "@next-auth/supabase-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { supabase } from "@/lib/supabase";
+import { loginUser, getUserProfile } from "@/lib/auth";
+import { signIn } from "next-auth/react";
 
-export const authOptions = {
+const authOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -13,33 +18,86 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // Authenticate user using Supabase
-        const { email, password } = credentials;
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw new Error(error.message);
-        return data.user; //returning authenticated user data
+        if (!credentials?.email || !credentials.password) return null;
+
+        const result = await loginUser(credentials.email, credentials.password);
+        if (!result.success) return null;
+
+        //get additional user profile data
+        const porfileResult = await getUserProfile(result.user.id);
+
+        return {
+          id: result.user.id,
+          email: result.user.email,
+          name: porfileResult.success ? porfileResult.profile.name : null,
+        };
       },
     }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-    }),
   ],
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  }),
   callbacks: {
+    async signIn({ user, account }) {
+      //handle google sign-in
+      if (account.provide === "google") {
+        // check if user exists in supabase
+        const { data: existingUser } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("email", user.email)
+          .single();
+
+        if (!existingUser) {
+          //create new user in supabase profiles table
+          try {
+            //first, check if they exist in auth
+            const { data: authUser } = await supabase.auth.admin.getUserByEmail(
+              user.email
+            );
+
+            let userId = authUser?.id;
+
+            //if not in auth, create new
+            if (!userId) {
+              const { data: newAuthUser } =
+                await supabase.auth.admin.createUser({
+                  email: user.email,
+                  email_confirmed: true,
+                });
+              userId = newAuthUser.id;
+            }
+
+            //create profile
+            await supabase.from("profiles").insert([
+              {
+                id: userId,
+                email: user.email,
+                name: user.name,
+              },
+            ]);
+          } catch (error) {
+            console.error("Error creating user profiles:", error);
+          }
+        }
+      }
+      return true;
+    },
     async session({ session, token }) {
-      session.user.id = token.sub; // Attach user ID to session
+      if (token?.sub) {
+        session.user.id = token.sub;
+      }
       return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+      }
+      return token;
     },
   },
   pages: {
-    signIn: "/login", // custom login page
+    signIn: "/login",
+  },
+  session: {
+    strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

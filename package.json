@@ -11,7 +11,8 @@
   "dependencies": {
     "@next-auth/firebase-adapter": "^2.0.1",
     "@next-auth/supabase-adapter": "^0.2.1",
-    "@supabase/supabase-js": "^2.49.3",
+    "@supabase/supabase-js": "^2.49.4",
+    "bcryptjs": "^3.0.2",
     "firebase": "^11.5.0",
     "next": "15.2.3",
     "next-auth": "^4.24.11",

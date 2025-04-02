@@ -1,53 +1,23 @@
 "use client";
-import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { supabase } from "@/lib/supabase";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
+import AuthForm from "@/components/AuthForm";
 
-  //for signin with email-password
-  const handleLogin = async () => {
-    await signIn("credentials", {
-      email,
-      password,
-      redirect: true,
-      callbackUrl: "/home",
-    });
-  };
+export default function Login() {
+  const { data: session, status } = useSession();
 
-  //for signin with google
-  const handleGoogleSignIn = async () => {
-    await signIn("google", { redirect: true, callbackUrl: "/home" });
-  };
+  if (status === "loading") {
+    return <p>loading...</p>;
+  }
 
-  //for new user registration
-  const handleSignUp = async () => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) console.log(error.message);
-  };
+  if (session) {
+    redirect("/home");
+  }
 
   return (
-    <div>
-      <h2> Login / Sign Up</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button onClick={handleLogin}>Login</button>
-      <button onClick={handleGoogleSignIn}>Sign in with Google</button>
-      <button onClick={handleSignUp}>Sign up</button>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+      <AuthForm />
     </div>
   );
-};
-
-export default LoginPage;
+}

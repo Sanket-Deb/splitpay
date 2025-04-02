@@ -1,22 +1,36 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { redirect, Redirect } from "next/navigation";
+import Header from "@/components/Header";
 
-const HomePage = () => {
-  const { data: session } = useSession();
+export default function Home() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return <p>Loading...</p>;
+  }
+
+  if (!session) {
+    redirect("/login");
+  }
 
   return (
-    <div>
-      {session ? (
-        <>
-          <h2>Welcome, {session.user.email}</h2>
-          <button onClick={() => signOut()}>Sign Out</button>
-        </>
-      ) : (
-        <p>Loading...</p>
-      )}
+    <div className="min-h-screen bg-gray-100">
+      <Header />
+      <main className="max-w-7xl mx-auto py-6 px-4">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Your Account Details</h2>
+          <p>
+            <strong>Email:</strong>
+            {session.user.email}
+          </p>
+          <p>
+            <strong>Name:</strong>
+            {session.user.name || "N/A"}
+          </p>
+        </div>
+      </main>
     </div>
   );
-};
-
-export default HomePage;
+}
