@@ -2,12 +2,6 @@
 
 import { SessionProvider } from "next-auth/react";
 
-const RootLayout = ({ children }) => (
-  <html lang="en">
-    <body>
-      <SessionProvider>{children}</SessionProvider>
-    </body>
-  </html>
-);
+const Layout = ({ children }) => <SessionProvider>{children}</SessionProvider>;
 
-export default RootLayout;
+export default Layout;
