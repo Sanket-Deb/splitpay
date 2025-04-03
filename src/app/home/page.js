@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { redirect, Redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 
 export default function Home() {

@@ -1,18 +1,22 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import AuthForm from "@/components/AuthForm";
 
 export default function Login() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading" && session) {
+      router.push("/home");
+    }
+  }, [session, status, router]);
 
   if (status === "loading") {
     return <p>loading...</p>;
-  }
-
-  if (session) {
-    redirect("/home");
   }
 
   return (
