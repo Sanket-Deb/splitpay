@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { supabase } from "./supabase";
+import { supabase, supabaseAdmin } from "./supabase";
 
 //Function to handle email/password registration
 export async function registerUser(email, password, name) {
@@ -15,8 +15,8 @@ export async function registerUser(email, password, name) {
 
     if (error) throw error;
 
-    //add the user to the profile table
-    const { error: profileError } = await supabase
+    //use admin client to bypass RLS
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .insert([{ id: data.user.id, email, name }]);
 

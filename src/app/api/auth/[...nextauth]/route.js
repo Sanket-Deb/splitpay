@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseAdmin } from "@/lib/supabase";
 import { loginUser, getUserProfile } from "@/lib/auth";
 import { signIn } from "next-auth/react";
 
@@ -39,7 +39,7 @@ const authOptions = {
       //handle google sign-in
       if (account.provide === "google") {
         // check if user exists in supabase
-        const { data: existingUser } = await supabase
+        const { data: existingUser } = await supabaseAdmin
           .from("profiles")
           .select("*")
           .eq("email", user.email)
@@ -49,16 +49,15 @@ const authOptions = {
           //create new user in supabase profiles table
           try {
             //first, check if they exist in auth
-            const { data: authUser } = await supabase.auth.admin.getUserByEmail(
-              user.email
-            );
+            const { data: authUser } =
+              await supabaseAdmin.auth.admin.getUserByEmail(user.email);
 
             let userId = authUser?.id;
 
             //if not in auth, create new
             if (!userId) {
               const { data: newAuthUser } =
-                await supabase.auth.admin.createUser({
+                await supabaseAdmin.auth.admin.createUser({
                   email: user.email,
                   email_confirmed: true,
                 });
@@ -66,7 +65,7 @@ const authOptions = {
             }
 
             //create profile
-            await supabase.from("profiles").insert([
+            await supabaseAdmin.from("profiles").insert([
               {
                 id: userId,
                 email: user.email,
