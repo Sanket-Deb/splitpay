@@ -1,3 +1,5 @@
+Welcome to SplitPay a free alternative to Splitwise :
+
 FEATURES IN MIND -
 ✅ User Authentication – Sign up, login, and logout (Google/Firebase auth or custom)
 ✅ Dashboard – Overview of balances, groups, and recent activities
